@@ -26,11 +26,25 @@ router.post(
   (req, res, next) => usersController.createInvite(req, res, next)
 );
 
+router.post(
+  '/invite',
+  requireAdmin,
+  validate({ body: createInviteSchema }),
+  (req, res, next) => usersController.createInvite(req, res, next)
+);
+
 router.delete('/invites/:inviteId', requireAdmin, (req, res, next) =>
   usersController.revokeInvite(req, res, next)
 );
 
 router.patch(
+  '/:userId/role',
+  requireAdmin,
+  validate({ body: updateUserRoleSchema }),
+  (req, res, next) => usersController.updateUserRole(req, res, next)
+);
+
+router.put(
   '/:userId/role',
   requireAdmin,
   validate({ body: updateUserRoleSchema }),

@@ -30,7 +30,8 @@ export const Automations: React.FC = () => {
     try {
       setLoading(true);
       const res = await automationsApi.getRules();
-      setRules(res.data);
+      const list = res.data?.data || (Array.isArray(res.data) ? res.data : []);
+      setRules(list);
     } catch (err: any) {
       addToast('Erro ao carregar regras de automação', 'error');
     } finally {
@@ -45,7 +46,7 @@ export const Automations: React.FC = () => {
   const handleToggle = async (id: string, currentActive: boolean) => {
     try {
       setRules((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, active: !currentActive } : r))
+        (Array.isArray(prev) ? prev : []).map((r) => (r.id === id ? { ...r, active: !currentActive } : r))
       );
       await automationsApi.toggleRule(id, !currentActive);
       addToast('Status da regra atualizado!', 'success');

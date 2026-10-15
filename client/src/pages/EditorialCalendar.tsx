@@ -39,7 +39,8 @@ export const EditorialCalendar: React.FC = () => {
   const fetchPosts = async () => {
     try {
       const res = await instagramApi.getPosts();
-      setPosts(res.data);
+      const list = res.data?.data || res.data?.posts || (Array.isArray(res.data) ? res.data : []);
+      setPosts(list);
     } catch (err: any) {
       addToast('Erro ao carregar calendário editorial', 'error');
     }
@@ -118,6 +119,8 @@ export const EditorialCalendar: React.FC = () => {
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
   ];
+
+  const safePosts = Array.isArray(posts) ? posts : [];
 
   return (
     <div className="space-y-6">
@@ -225,7 +228,7 @@ export const EditorialCalendar: React.FC = () => {
             {Array.from({ length: daysInMonth }).map((_, i) => {
               const dayNum = i + 1;
               const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
-              const dayPosts = posts.filter(
+              const dayPosts = safePosts.filter(
                 (p) => p.scheduledAt && p.scheduledAt.startsWith(dateStr)
               );
 
@@ -276,7 +279,7 @@ export const EditorialCalendar: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 font-normal">
-                {posts.map((p) => (
+                {safePosts.map((p) => (
                   <tr key={p.id} className="hover:bg-slate-800/40 transition-colors">
                     <td className="py-3 px-4 font-semibold text-slate-100">{p.title}</td>
                     <td className="py-3 px-4 font-bold text-pink-400">{p.type}</td>

@@ -42,10 +42,12 @@ export const LeadKanbanBoard: React.FC<LeadKanbanBoardProps> = ({
     else if (onUpdateLeadStatus) onUpdateLeadStatus(leadId, newStatus);
   };
 
+  const safeLeads = Array.isArray(leads) ? leads : [];
+
   return (
     <div className="flex gap-4 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory">
       {STAGES.map((stage, stageIndex) => {
-        const stageLeads = leads.filter((l) => l.status === stage.id);
+        const stageLeads = safeLeads.filter((l) => l.status === stage.id);
         const stageTotalValue = stageLeads.reduce(
           (acc, l) => acc + (Number(l.actualContractValue || l.estimatedValue) || 0),
           0

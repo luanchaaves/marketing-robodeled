@@ -34,7 +34,7 @@ export const Reports: React.FC = () => {
     try {
       setLoading(true);
       const res = await reportsApi.getPerformanceReport();
-      setReportData(res.data);
+      setReportData(res.data?.data || res.data || null);
     } catch (err: any) {
       addToast('Erro ao carregar relatórios', 'error');
     } finally {
@@ -98,7 +98,7 @@ export const Reports: React.FC = () => {
           <div className="h-64 w-full pt-2">
             {loading ? (
               <Skeleton className="h-full w-full rounded-xl" />
-            ) : (!reportData?.byEventType || reportData.byEventType.length === 0) ? (
+            ) : (!Array.isArray(reportData?.byEventType) || reportData.byEventType.length === 0) ? (
               <div className="h-full flex items-center justify-center text-xs text-slate-500">
                 Sem dados suficientes de eventos.
               </div>
@@ -128,7 +128,7 @@ export const Reports: React.FC = () => {
           </h2>
 
           <div className="h-64 w-full pt-2 flex items-center justify-center">
-            {(!reportData?.byLossReason || reportData.byLossReason.length === 0) ? (
+            {(!Array.isArray(reportData?.byLossReason) || reportData.byLossReason.length === 0) ? (
               <div className="text-xs text-slate-500">
                 Nenhum lead com motivo de perda registrado.
               </div>

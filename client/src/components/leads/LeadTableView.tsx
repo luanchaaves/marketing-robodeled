@@ -34,7 +34,9 @@ export const LeadTableView: React.FC<LeadTableViewProps> = ({
   onStatusChange,
   onDeleteLead,
 }) => {
-  if (leads.length === 0) {
+  const safeLeads = Array.isArray(leads) ? leads : [];
+
+  if (safeLeads.length === 0) {
     return (
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-12 text-center text-slate-400">
         Nenhum lead encontrado com os filtros selecionados.
@@ -72,7 +74,7 @@ export const LeadTableView: React.FC<LeadTableViewProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/60 font-normal">
-            {leads.map((lead) => {
+            {safeLeads.map((lead) => {
               const cleanPhone = (lead.whatsapp || lead.phone).replace(/\D/g, '');
               const waUrl = cleanPhone ? `https://wa.me/55${cleanPhone}` : null;
 

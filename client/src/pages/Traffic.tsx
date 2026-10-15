@@ -32,16 +32,27 @@ export const Traffic: React.FC = () => {
   const fetchTrafficData = async () => {
     try {
       setLoading(true);
-      const res = await metaAdsApi.getAccounts();
-      const accountsList = res.data?.accounts || [];
-      const metricsList = res.data?.metrics || [];
+      const [accRes, metRes] = await Promise.all([
+        metaAdsApi.getAccounts().catch(() => ({ data: { data: {} } })),
+        metaAdsApi.getMetrics().catch(() => ({ data: { data: [] } })),
+      ]);
+
+      const statusData = accRes.data?.data || accRes.data || {};
+      const accountsList = Array.isArray(statusData.adAccounts)
+        ? statusData.adAccounts
+        : Array.isArray(accRes.data?.accounts)
+        ? accRes.data.accounts
+        : [];
+
+      const rawMetrics = metRes.data?.data || metRes.data?.metrics || metRes.data || [];
+      const metricsList = Array.isArray(rawMetrics) ? rawMetrics : [];
 
       setAccounts(accountsList);
       setMetrics(metricsList);
 
-      const spend = metricsList.reduce((acc: number, m: any) => acc + (m.spend || 0), 0);
-      const imp = metricsList.reduce((acc: number, m: any) => acc + (m.impressions || 0), 0);
-      const clk = metricsList.reduce((acc: number, m: any) => acc + (m.clicks || 0), 0);
+      const spend = metricsList.reduce((acc: number, m: any) => acc + (m.metrics?.spend ?? m.spend ?? 0), 0);
+      const imp = metricsList.reduce((acc: number, m: any) => acc + (m.metrics?.impressions ?? m.impressions ?? 0), 0);
+      const clk = metricsList.reduce((acc: number, m: any) => acc + (m.metrics?.clicks ?? m.clicks ?? 0), 0);
 
       setTotalSpend(spend);
       setTotalImpressions(imp);
@@ -153,7 +164,7 @@ export const Traffic: React.FC = () => {
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
           </div>
-        ) : metrics.length === 0 ? (
+        ) : (!Array.isArray(metrics) || metrics.length === 0) ? (
           <div className="p-12 text-center space-y-3 text-slate-400 text-xs">
             <AlertCircle className="w-8 h-8 text-cyan-400 mx-auto opacity-60" />
             <p className="font-semibold text-slate-200">Nenhum dado de tráfego retornado ainda.</p>
@@ -178,22 +189,27 @@ export const Traffic: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 font-normal">
-                {metrics.map((m, idx) => {
-                  const ctr = m.impressions > 0 ? (m.clicks / m.impressions) * 100 : 0;
-                  const cpc = m.clicks > 0 ? m.spend / m.clicks : 0;
-                  const cpm = m.impressions > 0 ? (m.spend / m.impressions) * 1000 : 0;
-                  const cpl = m.leads > 0 ? m.spend / m.leads : 0;
+                {(metrics || []).map((m: any, idx: number) => {
+                  const spend = m.metrics?.spend ?? m.spend ?? 0;
+                  const impressions = m.metrics?.impressions ?? m.impressions ?? 0;
+                  const clicks = m.metrics?.clicks ?? m.clicks ?? 0;
+                  const leads = m.metrics?.conversions ?? m.leads ?? 0;
+                  const ctr = m.metrics?.ctr ?? (impressions > 0 ? (clicks / impressions) * 100 : 0);
+                  const cpc = m.metrics?.cpc ?? (clicks > 0 ? spend / clicks : 0);
+                  const cpm = m.metrics?.cpm ?? (impressions > 0 ? (spend / impressions) * 1000 : 0);
+                  const cpl = m.metrics?.cpl ?? (leads > 0 ? spend / leads : 0);
+                  const name = m.name || m.campaignName || m.adName || 'Campanha Meta';
 
                   return (
                     <tr key={idx} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="py-3 px-4 font-semibold text-slate-100">{m.campaignName || m.adName || 'Campanha Meta'}</td>
-                      <td className="py-3 px-4 font-bold text-cyan-400">{formatCurrency(m.spend)}</td>
-                      <td className="py-3 px-4">{formatNumberBR(m.impressions)}</td>
-                      <td className="py-3 px-4">{formatNumberBR(m.clicks)}</td>
+                      <td className="py-3 px-4 font-semibold text-slate-100">{name}</td>
+                      <td className="py-3 px-4 font-bold text-cyan-400">{formatCurrency(spend)}</td>
+                      <td className="py-3 px-4">{formatNumberBR(impressions)}</td>
+                      <td className="py-3 px-4">{formatNumberBR(clicks)}</td>
                       <td className="py-3 px-4">{formatPercentBR(ctr)}</td>
                       <td className="py-3 px-4">{formatCurrency(cpc)}</td>
                       <td className="py-3 px-4">{formatCurrency(cpm)}</td>
-                      <td className="py-3 px-4 font-bold text-emerald-400">{m.leads || 0}</td>
+                      <td className="py-3 px-4 font-bold text-emerald-400">{leads}</td>
                       <td className="py-3 px-4 font-bold text-emerald-400">{cpl > 0 ? formatCurrency(cpl) : '—'}</td>
                     </tr>
                   );

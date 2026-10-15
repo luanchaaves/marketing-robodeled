@@ -22,8 +22,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const checkSetupStatus = useCallback(async () => {
     try {
-      const response = await api.get('/auth/setup-status');
-      setNeedsSetup(response.data?.data?.needsSetup || false);
+      const response = await api.get('/auth/status');
+      const hasAdmin = response.data?.data?.hasAdmin ?? true;
+      setNeedsSetup(!hasAdmin);
     } catch {
       // If error checking, assume normal flow
       setNeedsSetup(false);
@@ -33,8 +34,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const refreshUser = useCallback(async () => {
     try {
       const response = await api.get('/auth/me');
-      if (response.data?.data) {
-        setUser(response.data.data);
+      const userData = response.data?.data?.user || (response.data?.data?.email ? response.data.data : null);
+      if (userData) {
+        setUser(userData);
       } else {
         setUser(null);
       }
@@ -64,8 +66,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoading(true);
     try {
       const response = await api.post('/auth/login', { email, password });
-      if (response.data?.data?.user) {
-        setUser(response.data.data.user);
+      const userData = response.data?.data?.user || (response.data?.data?.email ? response.data.data : null);
+      if (userData) {
+        setUser(userData);
       } else {
         await refreshUser();
       }

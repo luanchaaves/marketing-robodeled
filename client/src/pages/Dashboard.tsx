@@ -51,7 +51,8 @@ export const Dashboard: React.FC = () => {
     try {
       setLoading(true);
       const res = await dashboardApi.getSummary({ period });
-      setData(res.data);
+      const summaryData = res.data?.data || res.data || null;
+      setData(summaryData);
     } catch (err: any) {
       addToast('Erro ao carregar dados do dashboard', 'error');
     } finally {
@@ -279,10 +280,10 @@ export const Dashboard: React.FC = () => {
           <div className="space-y-3 pt-1">
             {loading ? (
               <Skeleton className="h-48 w-full rounded-xl" />
-            ) : (!data?.channels || data.channels.length === 0) ? (
+            ) : (!Array.isArray(data?.channels) || data.channels.length === 0) ? (
               <p className="text-xs text-slate-500 py-6 text-center">Nenhum canal registrado no período.</p>
             ) : (
-              data.channels.map((chan, idx) => (
+              (data.channels || []).map((chan, idx) => (
                 <div key={idx} className="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
                   <div>
                     <div className="font-semibold text-slate-200">{chan.channel}</div>
@@ -329,12 +330,12 @@ export const Dashboard: React.FC = () => {
                   <tr>
                     <td colSpan={5} className="py-4 text-center text-slate-500">Carregando leads...</td>
                   </tr>
-                ) : (!data?.recentLeads || data.recentLeads.length === 0) ? (
+                ) : (!Array.isArray(data?.recentLeads) || data.recentLeads.length === 0) ? (
                   <tr>
                     <td colSpan={5} className="py-6 text-center text-slate-500">Nenhum lead recente cadastrado.</td>
                   </tr>
                 ) : (
-                  data.recentLeads.map((lead) => (
+                  (data.recentLeads || []).map((lead) => (
                     <tr
                       key={lead.id}
                       onClick={() => navigate('/leads')}

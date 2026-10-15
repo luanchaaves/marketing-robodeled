@@ -8,6 +8,7 @@ const router = Router();
 router.use(authenticate);
 
 router.get('/status', (req, res, next) => metaAdsController.getStatus(req, res, next));
+router.get('/accounts', (req, res, next) => metaAdsController.getStatus(req, res, next));
 router.get('/metrics', (req, res, next) => metaAdsController.getTrafficMetrics(req, res, next));
 
 // Actions

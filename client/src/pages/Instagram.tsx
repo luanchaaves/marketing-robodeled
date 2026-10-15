@@ -49,7 +49,8 @@ export const Instagram: React.FC = () => {
     try {
       setLoading(true);
       const res = await instagramApi.getMedia();
-      setMediaList(res.data);
+      const list = res.data?.data || res.data?.media || (Array.isArray(res.data) ? res.data : []);
+      setMediaList(list);
     } catch (err: any) {
       addToast('Erro ao carregar galeria de mídia', 'error');
     } finally {
@@ -102,9 +103,10 @@ export const Instagram: React.FC = () => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const safeMediaList = Array.isArray(mediaList) ? mediaList : [];
   const filteredMedia = selectedCategory === 'TODOS'
-    ? mediaList
-    : mediaList.filter((m) => m.category === selectedCategory);
+    ? safeMediaList
+    : safeMediaList.filter((m) => m.category === selectedCategory);
 
   return (
     <div className="space-y-6">

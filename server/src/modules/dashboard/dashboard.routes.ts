@@ -7,5 +7,6 @@ const router = Router();
 router.use(authenticate);
 
 router.get('/', (req, res, next) => dashboardController.getDashboard(req, res, next));
+router.get('/summary', (req, res, next) => dashboardController.getDashboard(req, res, next));
 
 export const dashboardRoutes = router;

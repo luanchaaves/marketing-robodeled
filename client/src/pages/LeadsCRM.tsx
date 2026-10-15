@@ -52,7 +52,8 @@ export const LeadsCRM: React.FC = () => {
       if (channelFilter !== 'ALL') params.sourceChannel = channelFilter;
 
       const res = await leadsApi.getAll(params);
-      setLeads(res.data);
+      const leadsArray = res.data?.leads || res.data?.data || (Array.isArray(res.data) ? res.data : []);
+      setLeads(leadsArray);
     } catch (err: any) {
       addToast('Erro ao carregar base de leads', 'error');
     } finally {
@@ -296,7 +297,10 @@ export const LeadsCRM: React.FC = () => {
         onLeadUpdated={() => {
           fetchLeads();
           if (selectedLead) {
-            leadsApi.getById(selectedLead.id).then((res) => setSelectedLead(res.data));
+            leadsApi.getById(selectedLead.id).then((res) => {
+              const leadData = res.data?.data || res.data?.lead || res.data;
+              if (leadData) setSelectedLead(leadData);
+            });
           }
         }}
         onEditLead={(lead) => {

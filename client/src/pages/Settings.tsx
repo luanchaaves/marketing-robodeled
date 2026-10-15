@@ -37,7 +37,8 @@ export const Settings: React.FC = () => {
   const fetchUsers = async () => {
     try {
       const res = await usersApi.getAll();
-      setUsers(res.data);
+      const rawUsers = res.data?.data || res.data?.users || res.data || [];
+      setUsers(Array.isArray(rawUsers) ? rawUsers : []);
     } catch (err: any) {
       addToast('Erro ao carregar lista de usuários', 'error');
     }
@@ -46,7 +47,8 @@ export const Settings: React.FC = () => {
   const fetchAuditLogs = async () => {
     try {
       const res = await auditApi.getLogs();
-      setAuditLogs(res.data);
+      const rawLogs = res.data?.data || res.data?.logs || res.data || [];
+      setAuditLogs(Array.isArray(rawLogs) ? rawLogs : []);
     } catch (err: any) {
       addToast('Erro ao carregar logs de auditoria', 'error');
     }
@@ -130,7 +132,7 @@ export const Settings: React.FC = () => {
           }`}
         >
           <Users className="w-4 h-4" />
-          <span>Equipe & Permissões ({users.length})</span>
+          <span>Equipe & Permissões ({Array.isArray(users) ? users.length : 0})</span>
         </button>
 
         <button
@@ -173,7 +175,7 @@ export const Settings: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 font-normal">
-                {users.map((u) => (
+                {(Array.isArray(users) ? users : []).map((u) => (
                   <tr key={u.id} className="hover:bg-slate-800/40 transition-colors">
                     <td className="py-3 px-4 font-semibold text-slate-100 flex items-center space-x-2">
                       <div className="w-7 h-7 rounded-full bg-cyan-950 border border-cyan-800 flex items-center justify-center text-cyan-400 font-bold text-xs">
@@ -225,7 +227,7 @@ export const Settings: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 font-normal">
-                {auditLogs.length === 0 ? (
+                {(!Array.isArray(auditLogs) || auditLogs.length === 0) ? (
                   <tr>
                     <td colSpan={4} className="py-6 text-center text-slate-500">Nenhum registro de auditoria.</td>
                   </tr>

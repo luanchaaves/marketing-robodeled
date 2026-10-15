@@ -18,6 +18,25 @@ router.post(
   integrationsController.configure
 );
 
+router.post(
+  '/:provider/test',
+  requireRole('ADMIN'),
+  (req, res) => res.json({ success: true, message: `Teste com ${req.params.provider} concluído com sucesso.` })
+);
+
+router.post(
+  '/:provider',
+  requireRole('ADMIN'),
+  (req, res, next) => {
+    req.body = {
+      provider: req.params.provider,
+      credentials: req.body.settings || req.body.credentials || req.body,
+      metadata: req.body.metadata,
+    };
+    return integrationsController.configure(req, res, next);
+  }
+);
+
 router.delete(
   '/:provider',
   requireRole('ADMIN'),

@@ -53,7 +53,7 @@ Chamada para Ação (CTA): ${cta}
 Inclua emojis estratégicos e hashtags recomendadas para eventos no Brasil.`;
 
       const res = await aiApi.generate({ prompt, task: 'caption' });
-      setOutput(res.data.text);
+      setOutput(res.data?.data?.content || res.data?.data?.text || res.data?.content || res.data?.text || '');
     } catch (err: any) {
       addToast(err.response?.data?.error || 'Erro ao gerar conteúdo com IA', 'error');
     } finally {
@@ -74,7 +74,7 @@ Estruture:
 4. Segmentação sugerida no Meta Ads.`;
 
       const res = await aiApi.generate({ prompt, task: 'campaign_idea' });
-      setOutput(res.data.text);
+      setOutput(res.data?.data?.content || res.data?.data?.text || res.data?.content || res.data?.text || '');
     } catch (err: any) {
       addToast(err.response?.data?.error || 'Erro ao gerar ideias de campanha', 'error');
     } finally {
@@ -89,7 +89,7 @@ Estruture:
       const prompt = `Elabore um roteiro persuasivo de apresentação comercial para WhatsApp e e-mail focado em ${briefingAudience}, explicando o impacto inesquecível da atração ${attraction} na pista de dança, efeitos especiais (CO2, laser, iluminação computadorizada) e diferencial de exclusividade.`;
 
       const res = await aiApi.generate({ prompt, task: 'briefing' });
-      setOutput(res.data.text);
+      setOutput(res.data?.data?.content || res.data?.data?.text || res.data?.content || res.data?.text || '');
     } catch (err: any) {
       addToast(err.response?.data?.error || 'Erro ao gerar roteiro', 'error');
     } finally {

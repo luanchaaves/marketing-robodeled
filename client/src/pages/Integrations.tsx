@@ -101,7 +101,8 @@ export const Integrations: React.FC = () => {
   const fetchIntegrations = async () => {
     try {
       const res = await integrationsApi.getAll();
-      setIntegrations(res.data);
+      const rawList = res.data?.data || res.data || [];
+      setIntegrations(Array.isArray(rawList) ? rawList : []);
     } catch (err: any) {
       addToast('Erro ao carregar integrações', 'error');
     }
@@ -111,10 +112,12 @@ export const Integrations: React.FC = () => {
     fetchIntegrations();
   }, []);
 
+  const safeIntegrations = Array.isArray(integrations) ? integrations : [];
+
   const handleOpenConfig = (provider: string, title: string) => {
     setActiveProvider(provider);
     setActiveTitle(title);
-    const existing = integrations.find((i) => i.provider === provider);
+    const existing = safeIntegrations.find((i) => i.provider === provider);
     setConfigFields(existing?.settings || {});
     setIsModalOpen(true);
   };
@@ -144,7 +147,7 @@ export const Integrations: React.FC = () => {
   };
 
   const isConnected = (p: string) => {
-    const item = integrations.find((i) => i.provider === p);
+    const item = safeIntegrations.find((i) => i.provider === p);
     return item ? item.enabled : false;
   };
 

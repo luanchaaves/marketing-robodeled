@@ -8,6 +8,7 @@ const router = Router();
 router.use(authenticate);
 
 router.get('/', (req, res, next) => reportsController.getReport(req, res, next));
+router.get('/performance', (req, res, next) => reportsController.getReport(req, res, next));
 router.get('/export-csv', requireMarketing, (req, res, next) => reportsController.exportCSV(req, res, next));
 
 export const reportsRoutes = router;

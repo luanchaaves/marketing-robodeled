@@ -54,7 +54,8 @@ export const Campaigns: React.FC = () => {
     try {
       setLoading(true);
       const res = await campaignsApi.getAll();
-      setCampaigns(res.data);
+      const camps = res.data?.data || (Array.isArray(res.data) ? res.data : []);
+      setCampaigns(camps);
     } catch (err: any) {
       addToast('Erro ao carregar campanhas', 'error');
     } finally {
@@ -151,9 +152,10 @@ export const Campaigns: React.FC = () => {
   };
 
   // Aggregated KPIs
-  const totalBudget = campaigns.reduce((acc, c) => acc + (c.budget || 0), 0);
-  const totalSpent = campaigns.reduce((acc, c) => acc + (c.spend || 0), 0);
-  const activeCount = campaigns.filter((c) => c.status === 'ACTIVE').length;
+  const safeCampaigns = Array.isArray(campaigns) ? campaigns : [];
+  const totalBudget = safeCampaigns.reduce((acc, c) => acc + (c.budget || 0), 0);
+  const totalSpent = safeCampaigns.reduce((acc, c) => acc + (c.spend || 0), 0);
+  const activeCount = safeCampaigns.filter((c) => c.status === 'ACTIVE').length;
 
   return (
     <div className="space-y-6">
@@ -172,8 +174,8 @@ export const Campaigns: React.FC = () => {
         <div className="flex items-center space-x-2">
           <button
             onClick={() => {
-              if (campaigns.length > 0) {
-                setSelectedCampaignId(campaigns[0].id);
+              if (safeCampaigns.length > 0) {
+                setSelectedCampaignId(safeCampaigns[0].id);
                 setIsExpenseModalOpen(true);
               } else {
                 addToast('Crie uma campanha primeiro antes de registrar despesas.', 'info');
@@ -201,7 +203,7 @@ export const Campaigns: React.FC = () => {
           title="Orçamento Total Planejado"
           value={formatCurrency(totalBudget)}
           icon={<DollarSign className="w-5 h-5 text-cyan-400" />}
-          change={`${campaigns.length} campanhas`}
+          change={`${safeCampaigns.length} campanhas`}
           changeType="neutral"
           subtitle="Verba alocada"
         />
@@ -240,7 +242,7 @@ export const Campaigns: React.FC = () => {
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
           </div>
-        ) : campaigns.length === 0 ? (
+        ) : safeCampaigns.length === 0 ? (
           <div className="p-12 text-center space-y-3">
             <EmptyState
               icon={<FolderOpen className="w-8 h-8 text-cyan-400" />}
@@ -265,7 +267,7 @@ export const Campaigns: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 font-normal">
-                {campaigns.map((camp) => {
+                {safeCampaigns.map((camp) => {
                   const percentUsed = camp.budget > 0 ? (camp.spend / camp.budget) * 100 : 0;
 
                   return (

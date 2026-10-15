@@ -458,7 +458,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
 
               {/* Timeline */}
               <div className="space-y-4">
-                {(!lead.activities || lead.activities.length === 0) ? (
+                {(!Array.isArray(lead.activities) || lead.activities.length === 0) ? (
                   <p className="text-xs text-slate-500 text-center py-6">Nenhuma atividade registrada ainda.</p>
                 ) : (
                   lead.activities.map((act) => (
@@ -534,7 +534,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
 
               {/* Task List */}
               <div className="space-y-2">
-                {(!lead.tasks || lead.tasks.length === 0) ? (
+                {(!Array.isArray(lead.tasks) || lead.tasks.length === 0) ? (
                   <p className="text-xs text-slate-500 text-center py-6">Nenhuma tarefa cadastrada.</p>
                 ) : (
                   lead.tasks.map((task) => (
@@ -589,7 +589,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
                 </h4>
               </div>
 
-              {(!lead.deals || lead.deals.length === 0) ? (
+              {(!Array.isArray(lead.deals) || lead.deals.length === 0) ? (
                 <div className="bg-slate-950 border border-slate-800 rounded-xl p-8 text-center text-xs text-slate-500">
                   Nenhum orçamento ou contrato emitido ainda para este lead.
                 </div>
@@ -631,7 +631,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
                 <h4 className="text-xs uppercase tracking-wider font-semibold text-slate-400">
                   Jornada de Toques (Touchpoints)
                 </h4>
-                {(!lead.attributionTouches || lead.attributionTouches.length === 0) ? (
+                {(!Array.isArray(lead.attributionTouches) || lead.attributionTouches.length === 0) ? (
                   <p className="text-slate-500">Nenhum touchpoint adicional registrado.</p>
                 ) : (
                   <div className="space-y-2">

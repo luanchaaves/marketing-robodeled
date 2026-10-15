@@ -14,6 +14,7 @@ const router = Router();
 
 // Public / bootstrap routes
 router.get('/status', (req, res, next) => authController.getStatus(req, res, next));
+router.get('/setup-status', (req, res, next) => authController.getStatus(req, res, next));
 
 router.post(
   '/setup-first-admin',

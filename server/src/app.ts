@@ -2,6 +2,8 @@ import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import path from 'node:path';
+import fs from 'node:fs';
 import { env } from './config/env.js';
 import { logger } from './utils/logger.js';
 import { apiLimiter } from './middleware/rateLimiter.js';
@@ -124,20 +126,24 @@ export function createApp(): Express {
 
   // Serve static assets and SPA fallback if public directory exists
   const publicDir = process.env.PUBLIC_DIR || './public';
-  import('node:path').then((path) => {
-    import('node:fs').then((fs) => {
-      const resolvedPublic = path.resolve(publicDir);
-      if (fs.existsSync(resolvedPublic)) {
-        app.use(express.static(resolvedPublic));
-        app.get('*', (req: Request, res: Response, next) => {
-          if (req.path.startsWith('/api') || req.path.startsWith('/health')) {
-            return next();
-          }
-          res.sendFile(path.join(resolvedPublic, 'index.html'));
-        });
+  const resolvedPublic = path.isAbsolute(publicDir) ? publicDir : path.resolve(process.cwd(), publicDir);
+
+  if (fs.existsSync(resolvedPublic)) {
+    // 1. Static files with caching
+    app.use(express.static(resolvedPublic, { maxAge: '1d', index: false }));
+
+    // 2. SPA wildcard fallback
+    app.get('*', (req: Request, res: Response, next) => {
+      if (req.path.startsWith('/api') || req.path.startsWith('/health')) {
+        return next();
       }
+      const indexPath = path.join(resolvedPublic, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        return res.sendFile(indexPath);
+      }
+      return next();
     });
-  });
+  }
 
   // Centralized Error Handling
   app.use(errorHandler);

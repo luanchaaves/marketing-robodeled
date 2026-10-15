@@ -1,0 +1,33 @@
+{
+  "name": "marketing-robodeled",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Plataforma Privada de Marketing Digital — Robô LED Partner",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "build": "npm --prefix server run build && npm --prefix client run build",
+    "start": "npm --prefix server start",
+    "lint": "npm --prefix server run lint && npm --prefix client run lint",
+    "typecheck": "npm --prefix server run typecheck && npm --prefix client run typecheck",
+    "test": "npm --prefix server test",
+    "test:coverage": "npm --prefix server run test:coverage",
+    "db:migrate": "npm --prefix server run db:migrate",
+    "db:seed": "npm --prefix server run db:seed",
+    "db:setup-admin": "npm --prefix server run db:setup-admin"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "keywords": [
+    "robo-led",
+    "marketing-platform",
+    "crm",
+    "meta-ads",
+    "instagram",
+    "automation"
+  ],
+  "author": "Robô LED Partner",
+  "license": "UNLICENSED"
+}

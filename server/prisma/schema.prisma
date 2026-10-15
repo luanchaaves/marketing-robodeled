@@ -1,0 +1,657 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  ADMIN
+  MARKETING
+  READONLY
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+  INVITED
+}
+
+enum LeadStatus {
+  NEW_LEAD
+  IN_SERVICE
+  QUALIFIED
+  QUOTE_SENT
+  NEGOTIATING
+  WON
+  LOST
+}
+
+enum SourceChannel {
+  META_ADS
+  INSTAGRAM_ORGANIC
+  SITE_FORM
+  WHATSAPP_DIRECT
+  GOOGLE_ADS
+  REFERRAL
+  MANUAL
+  CSV_IMPORT
+  OTHER
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum CampaignPlatform {
+  META
+  GOOGLE
+  TIKTOK
+  ORGANIC_INSTAGRAM
+  INFLUENCER
+  OTHER
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+enum PostPlatform {
+  INSTAGRAM
+  TIKTOK
+  FACEBOOK
+}
+
+enum PostFormat {
+  REELS
+  FEED_CAROUSEL
+  FEED_IMAGE
+  STORIES
+}
+
+enum PostStatus {
+  IDEA
+  IN_PRODUCTION
+  PENDING_REVIEW
+  APPROVED
+  SCHEDULED
+  PUBLISHED
+  FAILED
+  CANCELLED
+}
+
+enum MediaCategory {
+  ROBO_LED
+  PERSONAGEM
+  CASAMENTO
+  FESTA_15_ANOS
+  CORPORATIVO
+  ANIVERSARIO
+  BASTIDORES
+  DEPOIMENTO
+  OFERTA
+  OUTRO
+}
+
+enum IntegrationProvider {
+  META_ADS
+  INSTAGRAM
+  WHATSAPP_CLOUD
+  META_LEAD_ADS
+  N8N
+  SISTEMA_COTACAO
+  SISTEMA_CONTRATO
+  AI_ASSISTANT
+}
+
+enum IntegrationStatus {
+  DISCONNECTED
+  CONNECTED
+  ERROR
+}
+
+enum SyncStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+enum WebhookStatus {
+  PENDING
+  PROCESSED
+  FAILED
+  DUPLICATE
+}
+
+// ----------------------------------------------------
+// AUTHENTICATION & USERS
+// ----------------------------------------------------
+
+model User {
+  id             String         @id @default(uuid())
+  email          String         @unique
+  passwordHash   String
+  name           String
+  role           UserRole       @default(MARKETING)
+  status         UserStatus     @default(ACTIVE)
+  avatarUrl      String?
+  lastLoginAt    DateTime?
+  sessions       Session[]
+  invitesCreated Invite[]       @relation("InvitedBy")
+  assignedLeads  Lead[]         @relation("AssignedUser")
+  leadActivities LeadActivity[]
+  leadTasks      LeadTask[]     @relation("AssignedTasks")
+  auditLogs      AuditLog[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([email])
+  @@index([role])
+  @@index([status])
+  @@map("users")
+}
+
+model Session {
+  id         String    @id @default(uuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String    @unique
+  ipAddress  String?
+  userAgent  String?
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model Invite {
+  id          String     @id @default(uuid())
+  email       String
+  role        UserRole   @default(MARKETING)
+  tokenHash   String     @unique
+  invitedById String
+  invitedBy   User       @relation("InvitedBy", fields: [invitedById], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime   @default(now())
+
+  @@index([email])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@map("invites")
+}
+
+// ----------------------------------------------------
+// INTEGRATIONS & EXTERNAL SYNC
+// ----------------------------------------------------
+
+model Integration {
+  id                   String                 @id @default(uuid())
+  provider             IntegrationProvider    @unique
+  status               IntegrationStatus      @default(DISCONNECTED)
+  encryptedCredentials String?
+  metadata             Json?
+  lastSyncAt           DateTime?
+  errorDetails         String?
+  syncRuns             IntegrationSyncRun[]
+  adAccounts           AdAccount[]
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+
+  @@map("integrations")
+}
+
+model IntegrationSyncRun {
+  id               String       @id @default(uuid())
+  integrationId    String
+  integration      Integration  @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  status           SyncStatus   @default(PENDING)
+  trigger          String       @default("MANUAL") // MANUAL | SCHEDULED | WEBHOOK
+  recordsProcessed Int          @default(0)
+  errorLog         String?
+  startedAt        DateTime     @default(now())
+  completedAt      DateTime?
+
+  @@index([integrationId])
+  @@index([status])
+  @@map("integration_sync_runs")
+}
+
+// ----------------------------------------------------
+// CRM & LEADS
+// ----------------------------------------------------
+
+model Lead {
+  id                 String             @id @default(uuid())
+  name               String
+  phone              String
+  whatsapp           String?
+  email              String?
+  status             LeadStatus         @default(NEW_LEAD)
+  lossReason         String?
+  sourceChannel      SourceChannel      @default(MANUAL)
+  campaignName       String?
+  adSetName          String?
+  adName             String?
+  externalLeadId     String?            // Meta Lead Gen ID or Form ID
+  eventType          String?            // Casamento, 15 Anos, Corporativo, Aniversário, Balada
+  eventDate          DateTime?
+  eventCity          String?
+  eventLocation      String?
+  attractionInterest String?            // Robô LED 2.8m, Personagem Vivo, Efeitos CO2
+  estimatedValue     Decimal            @default(0.0) @db.Decimal(12, 2)
+  actualValue        Decimal            @default(0.0) @db.Decimal(12, 2)
+  notes              String?
+  assignedToUserId   String?
+  assignedUser       User?              @relation("AssignedUser", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  lastContactAt      DateTime?
+  nextAction         String?
+  nextActionDate     DateTime?
+  isArchived         Boolean            @default(false)
+  activities         LeadActivity[]
+  tasks              LeadTask[]
+  deals              Deal[]
+  attributionTouches AttributionTouch[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([name])
+  @@index([phone])
+  @@index([email])
+  @@index([status])
+  @@index([sourceChannel])
+  @@index([assignedToUserId])
+  @@index([eventDate])
+  @@index([createdAt])
+  @@map("leads")
+}
+
+model LeadActivity {
+  id          String   @id @default(uuid())
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  type        String   @default("NOTE") // NOTE | STATUS_CHANGE | WHATSAPP_MESSAGE | CALL | EMAIL | QUOTE_CREATED | CONTRACT_SIGNED | SYSTEM
+  title       String
+  description String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([leadId])
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("lead_activities")
+}
+
+model LeadTask {
+  id               String       @id @default(uuid())
+  leadId           String
+  lead             Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  assignedToUserId String?
+  assignedUser     User?        @relation("AssignedTasks", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  title            String
+  description      String?
+  dueDate          DateTime
+  priority         TaskPriority @default(MEDIUM)
+  isCompleted      Boolean      @default(false)
+  completedAt      DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@index([leadId])
+  @@index([assignedToUserId])
+  @@index([dueDate])
+  @@index([isCompleted])
+  @@map("lead_tasks")
+}
+
+// ----------------------------------------------------
+// DEALS & CONVERSIONS
+// ----------------------------------------------------
+
+model Deal {
+  id           String      @id @default(uuid())
+  leadId       String
+  lead         Lead        @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  title        String
+  value        Decimal     @default(0.0) @db.Decimal(12, 2)
+  status       String      @default("OPEN") // OPEN | WON | LOST
+  eventDate    DateTime?
+  quoteCode    String?     // Integrates with Sistema de Cotação
+  contractCode String?     // Integrates with Sistema de Contrato
+  notes        String?
+  closedAt     DateTime?
+  events       DealEvent[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([leadId])
+  @@index([status])
+  @@index([quoteCode])
+  @@index([contractCode])
+  @@map("deals")
+}
+
+model DealEvent {
+  id          String   @id @default(uuid())
+  dealId      String
+  deal        Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  eventType   String   // QUOTE_GENERATED | QUOTE_ACCEPTED | CONTRACT_SENT | CONTRACT_SIGNED | PAYMENT_RECEIVED
+  description String?
+  amount      Decimal? @db.Decimal(12, 2)
+  eventDate   DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([dealId])
+  @@map("deal_events")
+}
+
+// ----------------------------------------------------
+// ATTRIBUTION & TOUCHPOINTS
+// ----------------------------------------------------
+
+model AttributionTouch {
+  id            String        @id @default(uuid())
+  leadId        String
+  lead          Lead          @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  touchType     String        @default("FIRST_TOUCH") // FIRST_TOUCH | LAST_TOUCH | MID_TOUCH
+  sourceChannel SourceChannel @default(MANUAL)
+  utmSource     String?
+  utmMedium     String?
+  utmCampaign   String?
+  utmContent    String?
+  utmTerm       String?
+  platformId    String?       // Meta Ad ID, Google Click ID
+  adId          String?
+  touchedAt     DateTime      @default(now())
+  createdAt     DateTime      @default(now())
+
+  @@index([leadId])
+  @@index([sourceChannel])
+  @@index([utmCampaign])
+  @@map("attribution_touches")
+}
+
+// ----------------------------------------------------
+// CAMPAIGNS & PAID TRAFFIC (META ADS & MANUAL)
+// ----------------------------------------------------
+
+model Campaign {
+  id             String           @id @default(uuid())
+  name           String
+  platform       CampaignPlatform @default(META)
+  status         CampaignStatus   @default(ACTIVE)
+  objective      String           @default("LEAD_GENERATION")
+  plannedBudget  Decimal          @default(0.0) @db.Decimal(12, 2)
+  actualSpent    Decimal          @default(0.0) @db.Decimal(12, 2)
+  startDate      DateTime?
+  endDate        DateTime?
+  targetAudience String?
+  offer          String?
+  creativeNotes  String?
+  landingPageUrl String?
+  utmSource      String?          @default("facebook")
+  utmMedium      String?          @default("paid_social")
+  utmCampaign    String?
+  utmContent     String?
+  utmTerm        String?
+  notes          String?
+  adCampaigns    AdCampaign[]
+  socialPosts    SocialPost[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([name])
+  @@index([platform])
+  @@index([status])
+  @@map("campaigns")
+}
+
+model AdAccount {
+  id                String        @id @default(uuid())
+  integrationId     String
+  integration       Integration   @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  externalAccountId String        @unique // e.g. act_123456789
+  accountName       String
+  currency          String        @default("BRL")
+  timezone          String        @default("America/Sao_Paulo")
+  status            String        @default("ACTIVE")
+  adCampaigns       AdCampaign[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([integrationId])
+  @@index([externalAccountId])
+  @@map("ad_accounts")
+}
+
+model AdCampaign {
+  id                 String           @id @default(uuid())
+  adAccountId        String
+  adAccount          AdAccount        @relation(fields: [adAccountId], references: [id], onDelete: Cascade)
+  campaignId         String?
+  campaign           Campaign?        @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  externalCampaignId String           @unique // Meta Campaign ID
+  name               String
+  status             String           @default("ACTIVE") // ACTIVE | PAUSED | ARCHIVED
+  dailyBudget        Decimal?         @db.Decimal(12, 2)
+  lifetimeBudget     Decimal?         @db.Decimal(12, 2)
+  objective          String?
+  metricsDaily       AdMetricDaily[]
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@index([adAccountId])
+  @@index([campaignId])
+  @@index([externalCampaignId])
+  @@map("ad_campaigns")
+}
+
+model AdMetricDaily {
+  id                String     @id @default(uuid())
+  adCampaignId      String
+  adCampaign        AdCampaign @relation(fields: [adCampaignId], references: [id], onDelete: Cascade)
+  date              DateTime   @db.Date
+  impressions       Int        @default(0)
+  reach             Int        @default(0)
+  clicks            Int        @default(0)
+  spend             Decimal    @default(0.0) @db.Decimal(12, 2)
+  cpc               Decimal    @default(0.0) @db.Decimal(10, 4)
+  cpm               Decimal    @default(0.0) @db.Decimal(10, 4)
+  ctr               Decimal    @default(0.0) @db.Decimal(6, 4)
+  conversions       Int        @default(0)
+  cpl               Decimal    @default(0.0) @db.Decimal(10, 4)
+  roas              Decimal    @default(0.0) @db.Decimal(8, 2)
+  revenueAttributed Decimal    @default(0.0) @db.Decimal(12, 2)
+  rawData           Json?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@unique([adCampaignId, date])
+  @@index([adCampaignId])
+  @@index([date])
+  @@map("ad_metrics_daily")
+}
+
+// ----------------------------------------------------
+// INSTAGRAM & CONTENT CALENDAR & MEDIA LIBRARY
+// ----------------------------------------------------
+
+model SocialPost {
+  id             String                  @id @default(uuid())
+  title          String
+  platform       PostPlatform            @default(INSTAGRAM)
+  format         PostFormat              @default(REELS)
+  caption        String?
+  hashtags       String?
+  cta            String?
+  mediaUrls      String[]
+  scheduledAt    DateTime?
+  publishedAt    DateTime?
+  status         PostStatus              @default(IDEA)
+  objective      String?
+  campaignId     String?
+  campaign       Campaign?               @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  externalPostId String?
+  errorMessage   String?
+  retryCount     Int                     @default(0)
+  metricsDaily   SocialPostMetricDaily[]
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  @@index([platform])
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([campaignId])
+  @@map("social_posts")
+}
+
+model SocialPostMetricDaily {
+  id           String     @id @default(uuid())
+  socialPostId String
+  socialPost   SocialPost @relation(fields: [socialPostId], references: [id], onDelete: Cascade)
+  date         DateTime   @db.Date
+  impressions  Int        @default(0)
+  reach        Int        @default(0)
+  likes        Int        @default(0)
+  comments     Int        @default(0)
+  shares       Int        @default(0)
+  saves        Int        @default(0)
+  videoViews   Int        @default(0)
+  clicks       Int        @default(0)
+  createdAt    DateTime   @default(now())
+
+  @@unique([socialPostId, date])
+  @@index([socialPostId])
+  @@index([date])
+  @@map("social_post_metrics_daily")
+}
+
+model MediaAsset {
+  id          String        @id @default(uuid())
+  title       String
+  category    MediaCategory @default(ROBO_LED)
+  fileUrl     String
+  fileType    String        // image | video | document
+  fileSize    Int           // bytes
+  mimeType    String
+  tags        String[]
+  description String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([category])
+  @@index([fileType])
+  @@map("media_assets")
+}
+
+// ----------------------------------------------------
+// WEBHOOKS & AUTOMATIONS
+// ----------------------------------------------------
+
+model WebhookEvent {
+  id              String        @id @default(uuid())
+  provider        String        // META_LEAD_ADS | WHATSAPP_CLOUD | N8N | SITE_FORM | SISTEMA_COTACAO | SISTEMA_CONTRATO
+  eventId         String?       // External unique ID for deduplication
+  payload         Json
+  status          WebhookStatus @default(PENDING)
+  processingError String?
+  processedAt     DateTime?
+  createdAt       DateTime      @default(now())
+
+  @@index([provider])
+  @@index([eventId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("webhook_events")
+}
+
+model AutomationRule {
+  id            String          @id @default(uuid())
+  name          String
+  description   String?
+  triggerType   String          // LEAD_CREATED | STATUS_CHANGED | TASK_OVERDUE | WEBHOOK_RECEIVED | SCHEDULED_CRON
+  triggerConfig Json
+  actionType    String          // DISPATCH_N8N | SEND_WHATSAPP_TEMPLATE | SEND_NOTIFICATION | ASSIGN_LEAD | UPDATE_LEAD_STATUS
+  actionConfig  Json
+  isActive      Boolean         @default(true)
+  lastRunAt     DateTime?
+  runs          AutomationRun[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([triggerType])
+  @@index([isActive])
+  @@map("automation_rules")
+}
+
+model AutomationRun {
+  id               String         @id @default(uuid())
+  automationRuleId String
+  automationRule   AutomationRule @relation(fields: [automationRuleId], references: [id], onDelete: Cascade)
+  triggerPayload   Json?
+  status           String         @default("SUCCESS") // SUCCESS | FAILED | SKIPPED
+  executionResult  Json?
+  errorMessage     String?
+  executionTimeMs  Int            @default(0)
+  createdAt        DateTime       @default(now())
+
+  @@index([automationRuleId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("automation_runs")
+}
+
+// ----------------------------------------------------
+// AUDIT LOGS & SYSTEM SETTINGS
+// ----------------------------------------------------
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userEmail  String?
+  action     String   // LOGIN_SUCCESS | LOGIN_FAILED | LOGOUT | USER_INVITED | ROLE_CHANGED | LEAD_EXPORTED | INTEGRATION_UPDATED | CONFIG_CHANGED
+  entityType String?  // User | Lead | Campaign | Integration | System
+  entityId   String?
+  ipAddress  String?
+  userAgent  String?
+  details    Json?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model SystemSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  description String?
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([key])
+  @@map("system_settings")
+}

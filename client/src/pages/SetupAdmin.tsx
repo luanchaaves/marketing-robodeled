@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldAlert, User, Lock, Mail, Key, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { User, Lock, Mail, Key, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { authApi } from '../services/api';
 import { useToast } from '../context/ToastContext';
 
@@ -43,14 +43,20 @@ export const SetupAdmin: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 relative">
       <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-8 relative z-10 space-y-6">
-        <div className="text-center space-y-2">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-950/80 border border-amber-500/40 flex items-center justify-center text-amber-400">
-            <ShieldAlert className="w-8 h-8" />
+        <div className="text-center space-y-3">
+          <div className="relative inline-block">
+            <img
+              src="/logo.png"
+              alt="Robô LED Partner"
+              className="w-20 h-20 mx-auto object-contain rounded-xl drop-shadow-[0_0_20px_rgba(168,85,247,0.4)]"
+            />
           </div>
-          <h1 className="text-xl font-bold text-slate-100">Setup Inicial de Administrador</h1>
-          <p className="text-xs text-slate-400">
-            Configure o primeiro usuário com permissão de Admin Geral do sistema.
-          </p>
+          <div>
+            <h1 className="text-xl font-bold text-slate-100">Setup Inicial de Administrador</h1>
+            <p className="text-xs text-slate-400 mt-1">
+              Configure o primeiro usuário com permissão de Admin Geral do sistema.
+            </p>
+          </div>
         </div>
 
         {success ? (

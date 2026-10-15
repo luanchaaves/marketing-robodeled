@@ -10,7 +10,6 @@ import {
   BarChart3,
   Boxes,
   Settings,
-  Bot,
   Sparkles,
   X,
 } from 'lucide-react';
@@ -79,16 +78,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
         }`}
       >
         {/* Brand Header */}
-        <div className="p-5 border-b border-slate-800/80 flex items-center justify-between">
+        <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 shadow-md shadow-cyan-500/20">
-              <Bot className="w-6 h-6 text-slate-950 font-bold" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-cyan-400 rounded-full border-2 border-[#0E131F] animate-pulse" />
+            <div className="relative flex items-center justify-center w-11 h-11 rounded-xl bg-slate-900 border border-purple-500/30 shadow-md shadow-purple-500/20 p-1 overflow-hidden shrink-0">
+              <img
+                src="/logo.png"
+                alt="Robô LED Partner"
+                className="w-full h-full object-contain"
+              />
+              <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-extrabold text-sm tracking-wide text-white">ROBÔ LED</span>
-                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
                   PARTNER
                 </span>
               </div>

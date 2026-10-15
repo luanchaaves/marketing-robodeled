@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bot, Lock, Mail, ArrowRight, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
+import { Lock, Mail, ArrowRight, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
@@ -46,17 +46,24 @@ export const Login: React.FC = () => {
       {/* Login Box */}
       <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-8 relative z-10 space-y-6">
         {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-cyan-950/80 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shadow-lg shadow-cyan-500/10">
-            <Bot className="w-8 h-8" />
+        <div className="text-center space-y-3">
+          <div className="relative inline-block group">
+            <div className="absolute -inset-1.5 bg-gradient-to-r from-purple-600 via-fuchsia-500 to-cyan-500 rounded-2xl blur-md opacity-40 group-hover:opacity-70 transition duration-500"></div>
+            <img
+              src="/logo.png"
+              alt="Robô LED Partner"
+              className="relative w-28 h-28 mx-auto object-contain rounded-xl drop-shadow-[0_0_25px_rgba(168,85,247,0.45)]"
+            />
           </div>
-          <h1 className="text-xl font-bold text-slate-100 flex items-center justify-center space-x-1.5">
-            <span>Robô LED Partner</span>
-            <Sparkles className="w-4 h-4 text-cyan-400 inline" />
-          </h1>
-          <p className="text-xs text-slate-400">
-            Plataforma Privada de Marketing, CRM & Tráfego Pago
-          </p>
+          <div>
+            <h1 className="text-xl font-bold text-slate-100 flex items-center justify-center space-x-1.5">
+              <span>Robô LED Partner</span>
+              <Sparkles className="w-4 h-4 text-purple-400 inline" />
+            </h1>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Plataforma Privada de Marketing, CRM & Tráfego Pago
+            </p>
+          </div>
         </div>
 
         {/* Error Alert */}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Upload, FileText, CheckCircle2, AlertTriangle, Download } from 'lucide-react';
 import { leadsApi } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+import { getErrorMessage } from '../../utils/formatters';
 
 interface LeadImportModalProps {
   isOpen: boolean;
@@ -46,7 +47,7 @@ export const LeadImportModal: React.FC<LeadImportModalProps> = ({
       addToast(`Importação finalizada! ${res.data.importedCount} leads importados.`, 'success');
       onImportSuccess();
     } catch (err: any) {
-      addToast(err.response?.data?.error || 'Erro ao importar CSV', 'error');
+      addToast(getErrorMessage(err, 'Erro ao importar CSV'), 'error');
     } finally {
       setLoading(false);
     }

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { aiApi } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+import { getErrorMessage } from '../../utils/formatters';
 
 interface AIAssistantModalProps {
   isOpen: boolean;
@@ -55,7 +56,7 @@ Inclua emojis estratégicos e hashtags recomendadas para eventos no Brasil.`;
       const res = await aiApi.generate({ prompt, task: 'caption' });
       setOutput(res.data?.data?.content || res.data?.data?.text || res.data?.content || res.data?.text || '');
     } catch (err: any) {
-      addToast(err.response?.data?.error || 'Erro ao gerar conteúdo com IA', 'error');
+      addToast(getErrorMessage(err, 'Erro ao gerar conteúdo com IA'), 'error');
     } finally {
       setLoading(false);
     }
@@ -76,7 +77,7 @@ Estruture:
       const res = await aiApi.generate({ prompt, task: 'campaign_idea' });
       setOutput(res.data?.data?.content || res.data?.data?.text || res.data?.content || res.data?.text || '');
     } catch (err: any) {
-      addToast(err.response?.data?.error || 'Erro ao gerar ideias de campanha', 'error');
+      addToast(getErrorMessage(err, 'Erro ao gerar ideias de campanha'), 'error');
     } finally {
       setLoading(false);
     }
@@ -91,7 +92,7 @@ Estruture:
       const res = await aiApi.generate({ prompt, task: 'briefing' });
       setOutput(res.data?.data?.content || res.data?.data?.text || res.data?.content || res.data?.text || '');
     } catch (err: any) {
-      addToast(err.response?.data?.error || 'Erro ao gerar roteiro', 'error');
+      addToast(getErrorMessage(err, 'Erro ao gerar roteiro'), 'error');
     } finally {
       setLoading(false);
     }

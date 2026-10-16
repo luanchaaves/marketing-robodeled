@@ -11,6 +11,7 @@ import {
 import { automationsApi } from '../services/api';
 import { AutomationRule } from '../types';
 import { useToast } from '../context/ToastContext';
+import { getErrorMessage } from '../utils/formatters';
 
 export const Automations: React.FC = () => {
   const { addToast } = useToast();
@@ -86,7 +87,7 @@ export const Automations: React.FC = () => {
       setTargetConfig('');
       fetchRules();
     } catch (err: any) {
-      addToast(err.response?.data?.error || 'Erro ao criar regra', 'error');
+      addToast(getErrorMessage(err, 'Erro ao criar regra'), 'error');
     }
   };
 

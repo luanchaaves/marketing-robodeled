@@ -31,7 +31,7 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, []);
 
   const addToast = useCallback(
-    (messageOrObj: string | Omit<ToastItem, 'id'>, type: ToastType = 'info') => {
+    (messageOrObj: any, type: ToastType = 'info') => {
       const id = Math.random().toString(36).substring(2, 9);
       let toastItem: ToastItem;
 
@@ -42,13 +42,31 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           message: messageOrObj,
           duration: 4000,
         };
+      } else if (messageOrObj && typeof messageOrObj === 'object') {
+        let msg = 'Ocorreu um erro.';
+        if (typeof messageOrObj.message === 'string') {
+          msg = messageOrObj.message;
+        } else if (typeof messageOrObj.error === 'string') {
+          msg = messageOrObj.error;
+        } else if (messageOrObj.error && typeof messageOrObj.error.message === 'string') {
+          msg = messageOrObj.error.message;
+        } else if (typeof messageOrObj.msg === 'string') {
+          msg = messageOrObj.msg;
+        }
+
+        toastItem = {
+          id,
+          type: messageOrObj.type || type || 'info',
+          title: typeof messageOrObj.title === 'string' ? messageOrObj.title : undefined,
+          message: msg,
+          duration: typeof messageOrObj.duration === 'number' ? messageOrObj.duration : 4000,
+        };
       } else {
         toastItem = {
           id,
-          type: messageOrObj.type || 'info',
-          title: messageOrObj.title,
-          message: messageOrObj.message,
-          duration: messageOrObj.duration || 4000,
+          type,
+          message: String(messageOrObj || 'Aviso'),
+          duration: 4000,
         };
       }
 

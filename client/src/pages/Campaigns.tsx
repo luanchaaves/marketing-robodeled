@@ -23,6 +23,7 @@ import {
   formatNumberBR,
   campaignStatusLabels,
   campaignStatusColors,
+  getErrorMessage,
 } from '../utils/formatters';
 import { useToast } from '../context/ToastContext';
 
@@ -117,7 +118,7 @@ export const Campaigns: React.FC = () => {
       setIsModalOpen(false);
       fetchCampaigns();
     } catch (err: any) {
-      addToast(err.response?.data?.error || 'Erro ao salvar campanha', 'error');
+      addToast(getErrorMessage(err, 'Erro ao salvar campanha'), 'error');
     }
   };
 

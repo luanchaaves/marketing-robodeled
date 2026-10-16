@@ -133,3 +133,20 @@ export const postStatusColors: Record<string, string> = {
   APPROVED: 'bg-amber-950 text-amber-400 border-amber-800',
   PUBLISHED: 'bg-emerald-950 text-emerald-400 border-emerald-800',
 };
+
+/**
+ * Safely extracts a string error message from any error or Axios response
+ */
+export function getErrorMessage(err: any, fallback = 'Ocorreu um erro no servidor.'): string {
+  if (!err) return fallback;
+  if (typeof err === 'string') return err;
+  const resData = err.response?.data;
+  if (resData) {
+    if (typeof resData === 'string') return resData;
+    if (typeof resData.error === 'string') return resData.error;
+    if (resData.error && typeof resData.error.message === 'string') return resData.error.message;
+    if (typeof resData.message === 'string') return resData.message;
+  }
+  if (typeof err.message === 'string') return err.message;
+  return fallback;
+}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Lock, Mail, ArrowRight, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { getErrorMessage } from '../utils/formatters';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ export const Login: React.FC = () => {
       addToast('Autenticado com sucesso!', 'success');
       navigate('/');
     } catch (err: any) {
-      const msg = err.response?.data?.error || 'Credenciais inválidas ou erro no servidor.';
+      const msg = getErrorMessage(err, 'Credenciais inválidas ou erro no servidor.');
       setErrorMsg(msg);
       addToast(msg, 'error');
     } finally {

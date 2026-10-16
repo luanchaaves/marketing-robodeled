@@ -3,6 +3,7 @@ import { X, Sparkles, AlertCircle } from 'lucide-react';
 import { Lead, LeadStatus, LeadTemperature, SourceChannel, EventType } from '../../types';
 import { leadsApi } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+import { getErrorMessage } from '../../utils/formatters';
 
 interface NewLeadModalProps {
   isOpen: boolean;
@@ -125,7 +126,7 @@ export const NewLeadModal: React.FC<NewLeadModalProps> = ({
       onLeadSaved();
       onClose();
     } catch (err: any) {
-      addToast(err.response?.data?.error || 'Erro ao salvar lead', 'error');
+      addToast(getErrorMessage(err, 'Erro ao salvar lead'), 'error');
     } finally {
       setLoading(false);
     }

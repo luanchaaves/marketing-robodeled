@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { User, Lock, Mail, Key, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { authApi } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { getErrorMessage } from '../utils/formatters';
 
 export const SetupAdmin: React.FC = () => {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ export const SetupAdmin: React.FC = () => {
       addToast('Administrador configurado com sucesso!', 'success');
       setTimeout(() => navigate('/login'), 2000);
     } catch (err: any) {
-      addToast(err.response?.data?.error || 'Erro ao inicializar administrador', 'error');
+      addToast(getErrorMessage(err, 'Erro ao inicializar administrador'), 'error');
     } finally {
       setLoading(false);
     }

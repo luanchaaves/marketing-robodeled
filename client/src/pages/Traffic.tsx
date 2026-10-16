@@ -15,6 +15,7 @@ import {
   formatCurrency,
   formatNumberBR,
   formatPercentBR,
+  getErrorMessage,
 } from '../utils/formatters';
 import { useToast } from '../context/ToastContext';
 
@@ -75,7 +76,7 @@ export const Traffic: React.FC = () => {
       addToast('Sincronização com Meta Marketing API concluída!', 'success');
       fetchTrafficData();
     } catch (err: any) {
-      addToast(err.response?.data?.error || 'Erro ao sincronizar com a Meta API', 'error');
+      addToast(getErrorMessage(err, 'Erro ao sincronizar com a Meta API'), 'error');
     } finally {
       setSyncing(false);
     }

@@ -28,6 +28,7 @@ import {
   leadStatusColors,
   eventTypeLabels,
   sourceChannelLabels,
+  getErrorMessage,
 } from '../../utils/formatters';
 import { leadsApi } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
@@ -84,7 +85,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
       setActivityDesc('');
       onLeadUpdated();
     } catch (err: any) {
-      addToast(err.response?.data?.error || 'Erro ao registrar atividade', 'error');
+      addToast(getErrorMessage(err, 'Erro ao registrar atividade'), 'error');
     } finally {
       setLoading(false);
     }
@@ -106,7 +107,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
       setTaskDueDate('');
       onLeadUpdated();
     } catch (err: any) {
-      addToast(err.response?.data?.error || 'Erro ao criar tarefa', 'error');
+      addToast(getErrorMessage(err, 'Erro ao criar tarefa'), 'error');
     } finally {
       setLoading(false);
     }
@@ -120,7 +121,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
       addToast('Status da tarefa atualizado!', 'success');
       onLeadUpdated();
     } catch (err: any) {
-      addToast('Erro ao atualizar tarefa', 'error');
+      addToast(getErrorMessage(err, 'Erro ao atualizar tarefa'), 'error');
     }
   };
 
@@ -130,7 +131,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
       addToast(`Status alterado para "${leadStatusLabels[newStatus]}"`, 'success');
       onLeadUpdated();
     } catch (err: any) {
-      addToast('Erro ao alterar status', 'error');
+      addToast(getErrorMessage(err, 'Erro ao alterar status'), 'error');
     }
   };
 

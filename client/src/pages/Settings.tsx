@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { usersApi, auditApi, authApi } from '../services/api';
 import { User, AuditLog, UserRole } from '../types';
-import { formatDateBR } from '../utils/formatters';
+import { formatDateBR, getErrorMessage } from '../utils/formatters';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
@@ -75,7 +75,7 @@ export const Settings: React.FC = () => {
       setInviteEmail('');
       fetchUsers();
     } catch (err: any) {
-      addToast(err.response?.data?.error || 'Erro ao convidar usuário', 'error');
+      addToast(getErrorMessage(err, 'Erro ao convidar usuário'), 'error');
     }
   };
 
@@ -92,7 +92,7 @@ export const Settings: React.FC = () => {
       setCurrentPassword('');
       setNewPassword('');
     } catch (err: any) {
-      addToast(err.response?.data?.error || 'Erro ao alterar senha', 'error');
+      addToast(getErrorMessage(err, 'Erro ao alterar senha'), 'error');
     }
   };
 

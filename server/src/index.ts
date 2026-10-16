@@ -2,18 +2,14 @@ import { createApp } from './app.js';
 import { env } from './config/env.js';
 import { logger } from './utils/logger.js';
 import { prisma, checkDatabaseConnection } from './database/prisma.js';
+import { initDatabase } from './database/initDb.js';
 
 async function bootstrap() {
   try {
     logger.info('Iniciando Plataforma de Marketing — Robô LED Partner...');
 
-    // Test DB connection
-    const dbOk = await checkDatabaseConnection();
-    if (!dbOk) {
-      logger.warn('Não foi possível conectar imediatamente ao PostgreSQL. Verifique DATABASE_URL.');
-    } else {
-      logger.info('Conexão com PostgreSQL estabelecida com sucesso.');
-    }
+    // Initialize database schema and default admin/marketing users
+    await initDatabase();
 
     const app = createApp();
 

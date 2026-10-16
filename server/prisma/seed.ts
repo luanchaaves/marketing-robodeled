@@ -1,4 +1,4 @@
-import { PrismaClient, Role, UserStatus, LeadStatus, EventType, PriorityLevel, PostStatus, PostFormat, AutomationTrigger } from '@prisma/client';
+import { PrismaClient, UserRole, UserStatus, LeadStatus, TaskPriority, PostStatus, PostFormat } from '@prisma/client';
 import argon2 from 'argon2';
 
 const prisma = new PrismaClient();
@@ -37,7 +37,7 @@ async function main() {
       email: 'admin@roboledpartner.com.br',
       name: 'Luan Chaves (Admin)',
       passwordHash: adminPasswordHash,
-      role: Role.ADMIN,
+      role: UserRole.ADMIN,
       status: UserStatus.ACTIVE,
     },
   });
@@ -47,7 +47,7 @@ async function main() {
       email: 'marketing@roboledpartner.com.br',
       name: 'Especialista de Tráfego & Conteúdo',
       passwordHash: marketingPasswordHash,
-      role: Role.MARKETING,
+      role: UserRole.MARKETING,
       status: UserStatus.ACTIVE,
     },
   });
@@ -167,7 +167,7 @@ async function main() {
       sourceChannel: 'META_ADS' as const,
       status: LeadStatus.WON,
       temperature: 'HOT' as const,
-      eventType: EventType.WEDDING,
+      eventType: 'WEDDING',
       eventDate: new Date('2026-11-21T18:00:00Z'),
       eventCity: 'São Paulo',
       eventVenue: 'Espaço Villa Bisutti - Vila Olímpia',
@@ -186,10 +186,10 @@ async function main() {
       phone: '11976543210',
       whatsapp: '11976543210',
       email: 'fernanda.duarte@hotmail.com',
-      sourceChannel: 'META_LEAD_ADS' as const,
-      status: LeadStatus.NEGOTIATION,
+      sourceChannel: 'META_ADS' as const,
+      status: LeadStatus.NEGOTIATING,
       temperature: 'HOT' as const,
-      eventType: EventType.DEBUTANTE_15,
+      eventType: 'DEBUTANTE_15',
       eventDate: new Date('2026-10-10T19:30:00Z'),
       eventCity: 'Campinas',
       eventVenue: 'Quinta dos Carvalhos Eventos',
@@ -209,9 +209,9 @@ async function main() {
       whatsapp: '12991234567',
       email: 'carol.mendes.adv@gmail.com',
       sourceChannel: 'INSTAGRAM_ORGANIC' as const,
-      status: LeadStatus.PROPOSAL_SENT,
+      status: LeadStatus.QUOTE_SENT,
       temperature: 'WARM' as const,
-      eventType: EventType.WEDDING,
+      eventType: 'WEDDING',
       eventDate: new Date('2026-12-05T17:00:00Z'),
       eventCity: 'São José dos Campos',
       eventVenue: 'Palácio Sunset',
@@ -231,7 +231,7 @@ async function main() {
       sourceChannel: 'SITE_FORM' as const,
       status: LeadStatus.QUALIFIED,
       temperature: 'WARM' as const,
-      eventType: EventType.GRADUATION,
+      eventType: 'GRADUATION',
       eventDate: new Date('2027-02-15T22:00:00Z'),
       eventCity: 'São Paulo',
       eventVenue: 'Pro Magno Centro de Eventos',
@@ -248,9 +248,9 @@ async function main() {
       whatsapp: '19988223344',
       email: 'juliana.martins.sp@gmail.com',
       sourceChannel: 'META_ADS' as const,
-      status: LeadStatus.ATTENDING,
+      status: LeadStatus.IN_SERVICE,
       temperature: 'WARM' as const,
-      eventType: EventType.WEDDING,
+      eventType: 'WEDDING',
       eventDate: new Date('2026-09-18T18:30:00Z'),
       eventCity: 'Sorocaba',
       eventVenue: 'Haras Vila Real',
@@ -269,7 +269,7 @@ async function main() {
       sourceChannel: 'WHATSAPP_DIRECT' as const,
       status: LeadStatus.NEW_LEAD,
       temperature: 'HOT' as const,
-      eventType: EventType.BIRTHDAY,
+      eventType: 'BIRTHDAY',
       eventDate: new Date('2026-10-31T20:00:00Z'),
       eventCity: 'São Paulo',
       eventVenue: 'Buffet França',
@@ -287,7 +287,7 @@ async function main() {
       sourceChannel: 'REFERRAL' as const,
       status: LeadStatus.LOST,
       temperature: 'COLD' as const,
-      eventType: EventType.CORPORATE,
+      eventType: 'CORPORATE',
       eventDate: new Date('2026-08-10T19:00:00Z'),
       eventCity: 'São Paulo',
       eventVenue: 'WTC Events Center',
@@ -345,14 +345,14 @@ async function main() {
     }
 
     // Add a scheduled task for attending/negotiating leads
-    if (lead.status === LeadStatus.NEGOTIATION || lead.status === LeadStatus.ATTENDING) {
+    if (lead.status === LeadStatus.NEGOTIATING || lead.status === LeadStatus.IN_SERVICE) {
       await prisma.leadTask.create({
         data: {
           leadId: lead.id,
           userId: lead.responsibleId || admin.id,
           title: `Follow-up comercial via WhatsApp com ${lead.name}`,
           dueDate: new Date(Date.now() + 86400000),
-          priority: PriorityLevel.HIGH,
+          priority: TaskPriority.HIGH,
         },
       });
     }
@@ -380,7 +380,7 @@ async function main() {
       {
         title: 'Carrossel: 5 Motivos para Ter o Robô LED na sua Festa de 15 Anos',
         caption: '1. Entrada triunfal inesquecível ✨\n2. Fotos e vídeos virais para o TikTok e Reels 📸\n3. Animação 100% contagiante na pista ⚡\nQual a sua cor favorita de LED? Comente aqui!',
-        format: PostFormat.CAROUSEL,
+        format: PostFormat.FEED_CAROUSEL,
         status: PostStatus.SCHEDULED,
         scheduledDate: new Date(Date.now() + 2 * 86400000),
         mediaAssetId: assets[2].id,
@@ -389,7 +389,7 @@ async function main() {
         title: 'Story & Reels: Bastidores dos Efeitos Especiais com Tequileiro Neon',
         caption: 'Bastidores de montagem dos Sparkulars e sincronia de iluminação da nossa equipe técnica! 🚀',
         format: PostFormat.REELS,
-        status: PostStatus.DRAFT,
+        status: PostStatus.IDEA,
         scheduledDate: new Date(Date.now() + 5 * 86400000),
         mediaAssetId: assets[1].id,
       },
@@ -404,7 +404,7 @@ async function main() {
       {
         name: 'Disparo de WhatsApp Instantâneo para Meta Lead Ads',
         description: 'Envia mensagem com apresentação do Robô LED e catálogo em até 30 segundos após o lead preencher o formulário.',
-        trigger: AutomationTrigger.LEAD_CREATED,
+        trigger: 'LEAD_CREATED',
         actionType: 'WHATSAPP_MESSAGE',
         actionPayload: {
           template: 'boas_vindas_robo_led',
@@ -415,7 +415,7 @@ async function main() {
       {
         name: 'Notificação Interna de Novo Orçamento no n8n',
         description: 'Dispara webhook seguro para o n8n para alertar o grupo comercial e criar tarefa de follow-up.',
-        trigger: AutomationTrigger.PROPOSAL_SENT,
+        trigger: 'PROPOSAL_SENT',
         actionType: 'WEBHOOK_N8N',
         actionPayload: {
           channel: 'comercial_alerts',
@@ -426,7 +426,7 @@ async function main() {
       {
         name: 'Follow-up Automático pós 48h sem Resposta',
         description: 'Gera lembrete prioritário para o vendedor ligar ou enviar nova mensagem personalizada.',
-        trigger: AutomationTrigger.NEGOTIATION_STALLED,
+        trigger: 'NEGOTIATION_STALLED',
         actionType: 'CREATE_TASK',
         actionPayload: {
           taskTitle: 'Lembrete de follow-up: Cliente sem resposta há 48h',
